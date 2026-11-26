@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>HD2 · Guerra Galattica</title>
+<style>
+:root{--bg:#070b11;--panel2:#141d28;--line:#223041;--text:#e9eef3;--muted:#8796a5;--accent:#ffe710;--blue:#2aa8ff;--ok:#3ddc84;--bad:#ff5a5a;
+--human:#4fc3f7;--terminid:#ff9d00;--automaton:#ff5a5a;--illuminate:#b388ff}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:"Segoe UI",Roboto,Arial,sans-serif;-webkit-text-size-adjust:100%}
+html{font-size:11px;font-size:clamp(8px,min(2.85vh,1.5vw),15px)}
+@media (orientation:portrait){html{font-size:clamp(8px,min(1.8vh,3.2vw),15px)}}
+body{font-size:1rem;line-height:1.25}
+#grid{position:fixed;left:0;top:0;right:0;bottom:0;padding:.55rem;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:.55rem}
+@media (orientation:portrait){#grid{grid-template-columns:1fr;grid-template-rows:repeat(4,1fr)}}
+.card{position:relative;min-width:0;min-height:0;display:flex;flex-direction:column;background:linear-gradient(160deg,#0f1823,#0a1018);border:1px solid #1d2b3b;border-radius:.9rem;padding:.5rem .7rem 0}
+.bd{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:.3em;padding-bottom:1.3em}
+.st{position:absolute;right:.7rem;bottom:.3rem;display:flex;align-items:center;gap:.4em;font:.78rem/1 ui-monospace,Menlo,Consolas,monospace;color:var(--muted);pointer-events:none;white-space:nowrap}
+.dot{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;background:#555}.dot.ok{background:var(--ok)}.dot.err{background:var(--bad)}
+.msg{margin:auto;color:var(--muted);text-align:center;padding:.5em;font-size:.9em}.msg.err{color:#ff8a8a}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:.5em;flex:none}
+.ttl{display:flex;align-items:center;gap:.45em;color:var(--accent);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.95em}
+.ttl svg{width:1.6em;height:1.6em;flex:none}
+.rr{display:flex;align-items:center;gap:.6em}
+.badge{background:var(--accent);color:#000;font-weight:800;padding:.05em .55em;border-radius:3px;white-space:nowrap}
+.reward{display:flex;align-items:center;gap:.25em;font-weight:800;color:var(--accent)}.reward svg{width:1.2em;height:1.2em}
+/* guerra */
+.wg{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1.5fr 1fr 1fr;gap:.35em}
+.t{min-width:0;min-height:0;background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:.2em .45em;display:flex;flex-direction:column;justify-content:center}
+.t .v{font-size:1.35em;font-weight:800;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t .l{font-size:.62em;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t.big{grid-column:1/-1;border-color:var(--accent)}.t.big .v{font-size:2.3em;color:var(--accent)}
+.t.k{border-top:3px solid var(--c)}
+/* ordine maggiore */
+.tk{flex:none;display:flex;flex-direction:column;gap:.12em}
+.lb{display:flex;align-items:center;gap:.4em;font-weight:700;min-width:0;line-height:1.15}
+.lb .tx{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lb em{font-style:normal;color:var(--accent)}
+.eta{margin-left:auto;font-size:.78em;font-weight:600;color:var(--muted);white-space:nowrap}.eta .g{color:var(--ok)}.eta .r{color:#ff8a65}
+.chk{width:1em;height:1em;flex:none;border:2px solid #667788;background:#1d2630;position:relative}
+.chk.done{background:var(--ok);border-color:var(--ok)}
+.chk.done:after{content:"";position:absolute;left:.24em;top:-.02em;width:.26em;height:.55em;border:solid #04210f;border-width:0 .14em .14em 0;transform:rotate(45deg)}
+.bar{position:relative;height:1.35em;background:var(--rem,#445);border:1px solid #000;overflow:hidden}
+.bar>i{position:absolute;left:0;top:0;bottom:0;background:var(--blue)}
+.bar>span{position:relative;z-index:1;display:block;padding:0 .4em;font-weight:700;font-size:.88em;line-height:1.5em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px #000}
+/* campagne */
+.cp{position:relative;display:flex;align-items:center;gap:.5em;flex:1 1 0;min-height:0;max-height:2.5em;background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:4px;overflow:hidden;padding:0 .5em}
+.cp>i{position:absolute;left:0;top:0;bottom:0;background:var(--c);opacity:.28}
+.cp>span{position:relative}
+.cp .nm{flex:1;min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp .tag{font-size:.62em;border:1px solid var(--c);color:var(--c);padding:.05em .55em;border-radius:1em;text-transform:uppercase;letter-spacing:.05em}
+.cp .pc{font-weight:700;min-width:3.6em;text-align:right;white-space:nowrap}
+.cp .pl{font-size:.8em;color:#cfd8e0;min-width:6em;text-align:right;white-space:nowrap}
+/* dispacci */
+.dp{flex:none;background:var(--panel2);border-left:3px solid var(--accent);border-radius:3px;padding:.3em .5em}
+.dp time{display:block;font-size:.72em;color:var(--muted)}
+.dp p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;white-space:pre-line;font-size:.9em}
+/* pannello log */
+#hit{position:fixed;right:0;bottom:0;width:44px;height:44px;z-index:40}
+#log{display:none;position:fixed;left:0;top:0;right:0;bottom:0;z-index:50;background:rgba(0,0,0,.94);color:#bfe9c8;flex-direction:column;font:11px/1.35 ui-monospace,Menlo,Consolas,monospace}
+#log.on{display:flex}
+#log .lgbar{display:flex;flex-wrap:wrap;gap:6px;padding:6px;flex:none;background:#111;border-bottom:1px solid #333}
+#log button{background:#222;color:#fff;border:1px solid #666;border-radius:3px;padding:5px 9px;font:12px sans-serif}
+#logst{flex:none;padding:4px 6px;background:#0a1f12;color:#ffe710;border-bottom:1px solid #333}
+#logpre{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;white-space:pre-wrap;word-break:break-all;padding:6px;margin:0;-webkit-user-select:text;user-select:text}
+</style>
+</head>
+<body>
+<div id="grid">
+  <section class="card"><div class="bd" id="bd-war"></div><div class="st"><span id="cd-war"></span><i class="dot" id="dot-war"></i></div></section>
+  <section class="card"><div class="bd" id="bd-mo"></div><div class="st"><span id="cd-mo"></span><i class="dot" id="dot-mo"></i></div></section>
+  <section class="card"><div class="bd" id="bd-camp"></div><div class="st"><span id="cd-camp"></span><i class="dot" id="dot-camp"></i></div></section>
+  <section class="card"><div class="bd" id="bd-disp"></div><div class="st"><span id="cd-disp"></span><i class="dot" id="dot-disp"></i></div></section>
+</div>
+<div id="hit"></div>
+<div id="log"><div class="lgbar"><button id="lgclose">Chiudi</button><button id="lgclear">Svuota</button><button id="lgcopy">Copia</button><button id="lgtest">Test rete</button></div><div id="logst"></div><pre id="logpre"></pre></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= CONFIGURAZIONE ================= */
+var BASE="https://api.helldivers2.dev/api/v1";
+var HEADERS={"Accept":"application/json","X-Super-Client":"phonebox-hd2-dashboard","X-Super-Contact":"phonebox-user"};  /* l'API richiede SEMPRE X-Super-* */
+var EVERY ={war:120000, mo:120000, camp:120000, disp:600000};     /* ogni quanto aggiornare ogni sezione (ms) */
+var MAXAGE={war:1200000,mo:1200000,camp:1200000,disp:43200000};   /* oltre questa età il dato salvato non viene mostrato */
+var GAP_MS=2500;            /* pausa minima tra due richieste (l'API consente 5 richieste/10s) */
+var DEBUG_OPEN=false;       /* true = pannello log visibile subito; altrimenti 3 tocchi rapidi nell'angolo in basso a destra */
+/* ID nemico (campo di tipo 4 degli obiettivi) -> nome. Se manca, il widget mostra la fazione con l'ID tra parentesi. */
+var ENEMIES={
+  "4:23741406":"Radicals","4:878778730":"Troopers","4:2664856027":"Shredder Tanks","4:1371180916":"Agitators","4:4066406510":"Vox Engines",
+  "4:2651633799":"Chargers","4:1378841226":"Dragon Roaches","4:717622970":"Bile Spewers","4:444529084":"Bile Spitters",
+  "4:4211847317":"Voteless","4:3621116014":"Obtruders","4:1870840792":"Gatekeepers","4:2118086817":"Wretches","4:3922421925":"Crushers",
+  "4:1153658728":"Factory Striders","4:1379865898":"Bile Spewers"
+};
+
+/* ================= UTILITÀ ================= */
+function $(id){return document.getElementById(id);}
+var mem={};
+function lsGet(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):(mem[k]||null);}catch(e){return mem[k]||null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){mem[k]=v;}}
+var nf=new Intl.NumberFormat("it-IT");
+function fmt(n){return(n==null||isNaN(n))?"–":nf.format(Math.round(n));}
+function dec(n,d){return(n==null||isNaN(n))?"–":n.toLocaleString("it-IT",{minimumFractionDigits:d,maximumFractionDigits:d});}
+function short(n){
+  if(n==null||isNaN(n))return "–";
+  var a=Math.abs(n),s;
+  if(a>=1e9)s=(n/1e9).toFixed(2).replace(/\.?0+$/,"")+" Mld";
+  else if(a>=1e6)s=(n/1e6).toFixed(a>=1e8?0:1).replace(/\.0$/,"")+" M";
+  else if(a>=1e3)s=(n/1e3).toFixed(a>=1e5?0:1).replace(/\.0$/,"")+" k";
+  else s=String(Math.round(n));
+  return s.replace(".",",");
+}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function clean(s){return esc(String(s||"").replace(/<\/?[a-z]+(=[^>]*)?>/gi,""));}
+function pc(x){return Math.max(0,Math.min(100,x));}
+function pad(n){return n<10?"0"+n:""+n;}
+function hm(sec){
+  if(sec==null||isNaN(sec))return "–";
+  if(sec<0)sec=0;
+  var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60);
+  return h>0?h+"h "+m+"m":m+"m";
+}
+function fmtSec(sec){return sec>=60?Math.floor(sec/60)+"m"+pad(sec%60)+"s":sec+"s";}
+function jitter(){return Math.floor(Math.random()*3000);}
+function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function timeoutP(p,ms,label){
+  return new Promise(function(res,rej){
+    var t=setTimeout(function(){rej(new Error("timeout "+Math.round(ms/1000)+"s su "+label));},ms);
+    p.then(function(v){clearTimeout(t);res(v);},function(e){clearTimeout(t);rej(e);});
+  });
+}
+
+/* ================= LOG ================= */
+var LOGMAX=90,logs=[];
+function ts(){var d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());}
+function renderLog(){var p=$("logpre");if(!p)return;p.textContent=logs.join("\n");p.scrollTop=p.scrollHeight;}
+function log(m){
+  logs.push(ts()+" "+m);if(logs.length>LOGMAX)logs.shift();
+  try{lsSet("hd2:log:land",logs);}catch(e){}
+  renderLog();
+}
+
+/* ================= RETE ================= */
+function hdrInfo(r){return "ratelimit "+(r.headers.get("x-ratelimit-remaining")||"-")+"/"+(r.headers.get("x-ratelimit-limit")||"-")+" | retry-after "+(r.headers.get("retry-after")||"-");}
+function doFetch(path){
+  var t0=Date.now(),tag=path;
+  var opts={headers:HEADERS};
+  var ctl=(typeof AbortController!=="undefined")?new AbortController():null;
+  if(ctl)opts.signal=ctl.signal;
+  log("→ GET "+tag);
+  var chain=fetch(BASE+path,opts).then(function(r){
+    log("← "+r.status+" "+tag+" "+(Date.now()-t0)+"ms | "+hdrInfo(r));
+    if(r.status===429){var e=new Error("Limite richieste raggiunto (429)");e.retry=parseInt(r.headers.get("Retry-After"),10)||30;throw e;}
+    if(!r.ok)throw new Error("HTTP "+r.status+" su "+path);
+    return r.json();
+  });
+  return timeoutP(chain,20000,tag).catch(function(e){
+    if(ctl){try{ctl.abort();}catch(_){}}
+    log("✖ "+tag+" "+(Date.now()-t0)+"ms: "+(e&&e.name)+": "+(e&&e.message));
+    throw e;
+  });
+}
+function get(path){return doFetch(path);}
+function isNet(e){return e instanceof TypeError&&/fetch|network|load failed/i.test(String(e.message));}
+var diagP=null,diagT=0;
+function diagnose(){
+  if(diagP&&Date.now()-diagT<60000)return diagP;       /* una sola sonda al minuto, anche se falliscono più sezioni */
+  diagT=Date.now();
+  if(typeof navigator!=="undefined"&&navigator.onLine===false){log("diagnosi: navigator.onLine=false");diagP=Promise.resolve("Nessuna connessione di rete sul dispositivo.");return diagP;}
+  var t0=Date.now();log("sonda no-cors su /war…");
+  diagP=timeoutP(fetch(BASE+"/war",{mode:"no-cors",cache:"no-store"}),10000,"sonda").then(function(){
+    log("sonda: server raggiunto (risposta opaca) "+(Date.now()-t0)+"ms");
+    return "Il server risponde ma il browser blocca la risposta (probabile limite richieste 429 o CORS).";
+  },function(e){
+    log("sonda fallita "+(Date.now()-t0)+"ms: "+(e&&e.message));
+    return "Impossibile raggiungere api.helldivers2.dev (rete, DNS, VPN/adblock o blocco del provider).";
+  });
+  return diagP;
+}
+function runTests(){
+  log("═══ TEST RETE ═══");
+  var steps=[
+    ["A cors con X-Super-Client + X-Super-Contact (come la pagina)",function(){return fetch(BASE+"/war",{headers:HEADERS});},true],
+    ["B cors con SOLO X-Super-Client",function(){return fetch(BASE+"/war",{headers:{"X-Super-Client":HEADERS["X-Super-Client"]}});},true],
+    ["C no-cors (sonda)",function(){return fetch(BASE+"/war",{mode:"no-cors",cache:"no-store"});},false],
+    ["D CORS generico (api.github.com)",function(){return fetch("https://api.github.com/zen");},true]
+  ],i=0;
+  (function next(){
+    if(i>=steps.length){log("═══ fine test ═══");return;}
+    var st=steps[i++],t0=Date.now();
+    timeoutP(st[1](),15000,st[0]).then(function(r){
+      log("test "+st[0]+": OK "+(Date.now()-t0)+"ms | "+(st[2]?("status "+r.status+" | "+hdrInfo(r)):("tipo "+r.type)));
+    },function(e){
+      log("test "+st[0]+": ERRORE "+(Date.now()-t0)+"ms: "+(e&&e.name)+": "+(e&&e.message));
+    }).then(function(){setTimeout(next,1500);});
+  })();
+}
+
+/* ================= ICONE ================= */
+var EMBLEM='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 5c-3.3 0-5.5 2.2-5.5 5 0 1.8.9 3 2 3.8V16h7v-2.2c1.1-.8 2-2 2-3.8 0-2.8-2.2-5-5.5-5zM9.6 11.6a1.3 1.3 0 110-2.6 1.3 1.3 0 010 2.6zm4.8 0a1.3 1.3 0 110-2.6 1.3 1.3 0 010 2.6z" fill="currentColor"/></svg>';
+var MEDAL='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#ffe710" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="#ffe710"/></svg>';
+function hd(title,right,icon){return '<div class="hd"><span class="ttl">'+(icon||"")+esc(title)+'</span>'+(right||"")+'</div>';}
+
+/* ================= SEZIONE 1: STATO GUERRA ================= */
+function loadWar(){return get("/war");}
+function renderWar(w){
+  var s=w.statistics||{};
+  var rate=s.missionSuccessRate!=null?s.missionSuccessRate+"%":"–";
+  function T(l,v,cls,c){return '<div class="t'+(cls?" "+cls:"")+'"'+(c?' style="--c:'+c+'"':"")+'><div class="v">'+v+'</div><div class="l">'+l+'</div></div>';}
+  return hd("Guerra galattica")+'<div class="wg">'
+    +T("Helldivers online",fmt(s.playerCount),"big")
+    +T("Missioni vinte",short(s.missionsWon))+T("Missioni perse",short(s.missionsLost))+T("Tasso successo",rate)
+    +T("Terminidi",short(s.terminidKills),"k","var(--terminid)")+T("Automi",short(s.automatonKills),"k","var(--automaton)")+T("Illuminati",short(s.illuminateKills),"k","var(--illuminate)")
+    +'</div>';
+}
+
+/* ================= SEZIONE 2: ORDINE MAGGIORE ================= */
+var RACE={1:"Humans",2:"Terminids",3:"Automatons",4:"Illuminate"};
+var RCOL={Humans:"#4fc3f7",Terminids:"#ff9d00",Automatons:"#ff5a5a",Illuminate:"#b388ff"};
+function pv(t,type){var i=(t.valueTypes||[]).indexOf(type);return i>=0?t.values[i]:null;}
+function describe(t,planets){
+  var goal=pv(t,3),race=RACE[pv(t,1)]||null,pl=pv(t,12);
+  var o={verb:"Task",count:false,what:"tipo "+t.type,goal:goal>0?goal:1,color:RCOL[race]||"#5c6b7a"};
+  if(t.type===3){
+    o.verb="Kill";o.count=true;o.what=race||"enemies";
+    for(var i=0;i<(t.valueTypes||[]).length;i++){
+      var ty=t.valueTypes[i],v=t.values[i];
+      if(ty!==1&&ty!==3&&ty!==11&&ty!==12&&v>0){
+        var key=ty+":"+v,nm=ENEMIES[key]||ENEMIES[v];
+        o.what=nm?nm:(race||"enemies")+" ["+key+"]";
+      }
+    }
+  }else if(t.type===11||t.type===13){
+    o.verb=t.type===11?"Liberate":"Hold";
+    if(pl>0){o.what=planets[pl]||("planet #"+pl);o.goal=1;}
+    else{o.count=true;o.what="planets";}
+  }else if(t.type===12){
+    o.verb="Defend";o.count=true;o.what="planets";
+  }
+  return o;
+}
+function histUpdate(id,prog){
+  var k="hd2:hist:"+id,h=lsGet(k)||{s:[]},now=Date.now();
+  h.s.push({t:now,p:prog});
+  h.s=h.s.filter(function(x){return now-x.t<=3600000;}).slice(-80);
+  lsSet(k,h);
+  var cur=h.s[h.s.length-1],old=null;
+  for(var i=0;i<h.s.length;i++){if(cur.t-h.s[i].t>=90000){old=h.s[i];break;}}
+  return prog.map(function(p,i){
+    if(!old||old.p[i]==null)return null;
+    return Math.max(0,(p-old.p[i])/((cur.t-old.t)/1000));
+  });
+}
+function loadMo(){
+  var planets=lsGet("hd2:planets")||{};
+  return get("/assignments").then(function(list){
+    list=list||[];
+    var need=[];
+    list.forEach(function(a){((a.setting||a).tasks||[]).forEach(function(t){
+      if(t.type===11||t.type===13){var p=pv(t,12);if(p>0&&!planets[p]&&need.indexOf(p)<0)need.push(p);}
+    });});
+    var chain=Promise.resolve();
+    need.slice(0,4).forEach(function(p){
+      chain=chain.then(function(){return wait(GAP_MS);}).then(function(){
+        return get("/planets/"+p).then(function(r){if(r&&r.name){planets[p]=r.name;lsSet("hd2:planets",planets);}}).catch(function(){});
+      });
+    });
+    return chain.then(function(){
+      return{list:list.map(function(a){
+        var st=a.setting||a,prog=a.progress||[];
+        var left=a.expiresIn!=null?a.expiresIn:(a.expiration?(new Date(a.expiration)-Date.now())/1000:null);
+        var rates=histUpdate(String(a.id),prog);
+        return{
+          id:a.id,
+          deadline:left!=null?Date.now()+left*1000:null,
+          reward:st.reward||a.reward||null,
+          tasks:(st.tasks||a.tasks||[]).map(function(t,i){
+            var d=describe(t,planets);d.prog=prog[i]||0;d.rate=rates[i];return d;
+          })
+        };
+      })};
+    });
+  });
+}
+function taskHTML(t,left){
+  var done=t.prog>=t.goal;
+  var label='<b>'+esc(t.verb)+'</b> <em>'+esc((t.count?short(t.goal)+" ":"")+t.what)+'</em>';
+  var eta="",bar="";
+  if(!done&&t.goal>1){
+    var p=pc(t.prog/t.goal*100);
+    var endv=(t.rate!=null&&left!=null)?(t.prog+t.rate*left)/t.goal*100:null;
+    var rem=(t.rate>0)?(t.goal-t.prog)/t.rate:null;
+    eta='<span class="eta">fin. <span class="'+(endv!=null?(endv>=100?"g":"r"):"")+'">'+(endv!=null?dec(endv,0)+"%":"–")+'</span> · compl. '+(rem!=null?hm(rem):"–")+'</span>';
+    bar='<div class="bar" style="--rem:'+t.color+'"><i style="width:'+p.toFixed(2)+'%"></i><span>'+short(t.prog)+' / '+short(t.goal)+' ('+dec(p,1)+'%)</span></div>';
+  }else if(!done){eta='<span class="eta">in corso</span>';}
+  return '<div class="tk"><div class="lb"><span class="chk'+(done?" done":"")+'"></span><span class="tx">'+label+'</span>'+eta+'</div>'+bar+'</div>';
+}
+function renderMo(d){
+  var a=(d.list||[])[0];
+  if(!a)return hd("Major","",EMBLEM)+'<div class="msg">Nessun Ordine Maggiore attivo.</div>';
+  var left=a.deadline?Math.max(0,(a.deadline-Date.now())/1000):null;
+  var rw=(a.reward&&a.reward.amount)?'<span class="reward">'+MEDAL+fmt(a.reward.amount)+'</span>':"";
+  var right='<span class="rr">'+rw+(left!=null?'<span class="badge">'+hm(left)+'</span>':"")+'</span>';
+  return hd("Major",right,EMBLEM)+a.tasks.map(function(t){return taskHTML(t,left);}).join("");
+}
+
+/* ================= SEZIONE 3: CAMPAGNE ATTIVE (top 5) ================= */
+var FAC={Humans:{n:"Super Terra",c:"#4fc3f7"},Terminids:{n:"Terminidi",c:"#ff9d00"},Automaton:{n:"Automi",c:"#ff5a5a"},Automatons:{n:"Automi",c:"#ff5a5a"},Illuminate:{n:"Illuminati",c:"#b388ff"}};
+function fac(n){return FAC[n]||{n:n||"?",c:"#8796a5"};}
+function loadCamp(){return get("/campaigns");}
+function renderCamp(list){
+  if(!list||!list.length)return hd("Campagne attive")+'<div class="msg">Nessuna campagna attiva.</div>';
+  var rows=list.map(function(c){
+    var p=c.planet||{},ev=p.event,isDef=!!ev;
+    var f=isDef?fac(ev.faction):fac(p.currentOwner==="Humans"?c.faction:p.currentOwner);
+    var hp=isDef?ev.health:p.health,max=isDef?ev.maxHealth:p.maxHealth;
+    return{name:p.name||"Pianeta",isDef:isDef,f:f,prog:max?pc((1-hp/max)*100):0,players:(p.statistics&&p.statistics.playerCount)||0};
+  });
+  /* priorità: numero di Helldivers (decrescente), poi % di avanzamento (decrescente) */
+  rows.sort(function(a,b){return(b.players-a.players)||(b.prog-a.prog);});
+  return hd("Campagne attive")+rows.slice(0,5).map(function(r){
+    return '<div class="cp" style="--c:'+r.f.c+'"><i style="width:'+r.prog.toFixed(1)+'%"></i><span class="nm">'+esc(r.name)+'</span><span class="tag">'+(r.isDef?"Dif.":"Lib.")+'</span><span class="pc">'+dec(r.prog,1)+'%</span><span class="pl">'+fmt(r.players)+' Helldivers</span></div>';
+  }).join("");
+}
+
+/* ================= SEZIONE 4: DISPACCI ================= */
+function loadDisp(){return get("/dispatches");}
+function renderDisp(list){
+  if(!list||!list.length)return hd("Dispacci")+'<div class="msg">Nessun dispaccio.</div>';
+  list=list.slice().sort(function(a,b){return new Date(b.published)-new Date(a.published);});
+  return hd("Dispacci")+list.slice(0,6).map(function(d){
+    var when=d.published?new Date(d.published).toLocaleString("it-IT",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
+    return '<div class="dp"><time>'+esc(when)+'</time><p>'+clean(d.message).replace(/\n{2,}/g,"\n")+'</p></div>';
+  }).join("");
+}
+
+/* ================= SEZIONI E PIANIFICATORE ================= */
+var ORDER=["mo","war","camp","disp"];
+var S={
+  war:{load:loadWar,render:renderWar},
+  mo:{load:loadMo,render:renderMo},
+  camp:{load:loadCamp,render:renderCamp},
+  disp:{load:loadDisp,render:renderDisp}
+};
+ORDER.forEach(function(k){
+  var s=S[k];s.key=k;s.every=EVERY[k];s.data=null;s.err=null;s.ts=0;s.fails=0;s.runs=0;s.busy=false;s.next=0;
+  s.bd=$("bd-"+k);s.cd=$("cd-"+k);s.dot=$("dot-"+k);
+});
+function setDot(s,ok){s.dot.className="dot "+(ok?"ok":"err");}
+function updateCd(s){
+  if(!s.cd)return;
+  if(s.busy){s.cd.textContent="↻ …";return;}
+  s.cd.textContent="↻ "+fmtSec(Math.max(0,Math.round((s.next-Date.now())/1000)));
+}
+/* adatta il contenuto alla card: i dispacci in eccesso vengono tolti, il resto si rimpicciolisce un po' */
+function fitSec(s){
+  var bd=s.bd;
+  if(s.key==="disp"){
+    var it=bd.querySelectorAll(".dp");
+    for(var i=it.length-1;i>0&&bd.scrollHeight>bd.clientHeight+1;i--)bd.removeChild(it[i]);
+    return;
+  }
+  var f=1;
+  while(bd.scrollHeight>bd.clientHeight+1&&f>0.62){f-=0.06;bd.style.fontSize=(f*100).toFixed(0)+"%";}
+}
+function renderSec(s){
+  var html;
+  if(s.data){
+    try{html=s.render(s.data);}
+    catch(e){html='<div class="msg err">Errore di visualizzazione: '+esc(e.message)+'</div>';log("render "+s.key+": "+e.message);}
+  }else if(s.err){html='<div class="msg err">'+esc(s.err)+'</div>';}
+  else html='<div class="msg">Caricamento…</div>';
+  s.bd.innerHTML=html;s.bd.style.fontSize="";
+  fitSec(s);
+}
+function renderAll(){ORDER.forEach(function(k){renderSec(S[k]);});}
+
+var running=false,gateUntil=0;
+function runSec(s){
+  running=true;s.busy=true;updateCd(s);
+  log("── "+s.key+" #"+(++s.runs)+" ──");
+  timeoutP(Promise.resolve().then(s.load),60000,"aggiornamento "+s.key).then(function(d){
+    s.fails=0;s.data=d;s.err=null;s.ts=Date.now();
+    lsSet("hd2:u:"+s.key,{d:d,ts:s.ts});
+    s.next=Date.now()+s.every+jitter();setDot(s,true);
+    log("✔ "+s.key+" ok, prossimo tra "+fmtSec(Math.round((s.next-Date.now())/1000)));
+  }).catch(function(e){
+    s.fails++;
+    var w=e&&e.retry?e.retry*1000:Math.min(30000*Math.pow(2,s.fails-1),300000);   /* 30s,60s,120s… max 5 min */
+    var secs=Math.round(w/1000);
+    log("✖ "+s.key+" fallito (#"+s.fails+"): "+(e&&e.name)+": "+(e&&e.message));
+    if(e&&e.retry)gateUntil=Math.max(gateUntil,Date.now()+w);    /* 429: ferma TUTTE le sezioni per il tempo indicato */
+    s.next=Date.now()+w+jitter();setDot(s,false);
+    if(isNet(e))return diagnose().then(function(msg){s.err=msg+" Nuovo tentativo tra "+secs+"s.";});
+    s.err=((e&&e.message)||String(e))+". Nuovo tentativo tra "+secs+"s.";
+  }).then(function(){
+    s.busy=false;running=false;gateUntil=Math.max(gateUntil,Date.now()+GAP_MS);
+    renderSec(s);updateCd(s);
+  });
+}
+function pump(){
+  if(running)return;
+  var now=Date.now();if(now<gateUntil)return;
+  var due=null;
+  ORDER.forEach(function(k){var s=S[k];if(s.next<=now&&(!due||s.next<due.next))due=s;});
+  if(due)runSec(due);
+}
+
+/* ================= PANNELLO LOG ================= */
+function bindLog(){
+  var taps=[];
+  $("hit").addEventListener("click",function(){
+    var n=Date.now();taps=taps.filter(function(t){return n-t<1500;});taps.push(n);
+    if(taps.length>=3){taps=[];var l=$("log");l.className=(l.className==="on")?"":"on";renderLog();}
+  });
+  $("lgclose").onclick=function(){$("log").className="";};
+  $("lgclear").onclick=function(){logs=[];lsSet("hd2:log:land",[]);renderLog();};
+  $("lgtest").onclick=runTests;
+  $("lgcopy").onclick=function(){
+    try{
+      var ta=document.createElement("textarea");ta.value=logs.join("\n");ta.style.cssText="position:fixed;opacity:0;left:0;top:0";
+      document.body.appendChild(ta);ta.select();var ok=document.execCommand("copy");document.body.removeChild(ta);
+      log(ok?"log copiato negli appunti":"copia non riuscita: tieni premuto sul testo per selezionarlo");
+    }catch(e){log("copia non disponibile");}
+  };
+}
+
+/* ================= AVVIO ================= */
+function start(){
+  var prev=lsGet("hd2:log:land");
+  if(prev&&prev.length)logs=prev.slice(-40).concat(["──────── nuova sessione ────────"]);
+  var sOk=true;try{localStorage.setItem("hd2:t","1");localStorage.removeItem("hd2:t");}catch(e){sOk=false;}
+  bindLog();
+  if(DEBUG_OPEN)$("log").className="on";
+  log("avvio landscape | "+window.innerWidth+"x"+window.innerHeight+" dpr "+(window.devicePixelRatio||1));
+  log("origin "+location.protocol+"//"+location.host+" | UA "+navigator.userAgent);
+  log("online "+navigator.onLine+" | AbortController "+(typeof AbortController!=="undefined")+" | localStorage "+(sOk?"ok":"NON disponibile"));
+  var now=Date.now();
+  ORDER.forEach(function(k,i){
+    var s=S[k],c=lsGet("hd2:u:"+k);
+    if(c&&c.d&&now-c.ts<MAXAGE[k]){
+      s.data=c.d;s.ts=c.ts;
+      s.next=Math.max(now+500+i*50,c.ts+s.every);
+      log("cache "+k+": "+Math.round((now-c.ts)/1000)+"s fa, prossimo agg. tra "+fmtSec(Math.round((s.next-now)/1000)));
+    }else s.next=now+300+i*50;
+  });
+  renderAll();ORDER.forEach(function(k){updateCd(S[k]);});
+  var rt=null;
+  window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(function(){log("resize "+window.innerWidth+"x"+window.innerHeight);renderAll();},150);});
+  window.addEventListener("orientationchange",function(){setTimeout(renderAll,250);});
+  window.addEventListener("error",function(e){log("JS error: "+e.message+" @"+(e.lineno||"?"));});
+  window.addEventListener("unhandledrejection",function(e){log("promise rifiutata: "+((e.reason&&e.reason.message)||e.reason));});
+  document.addEventListener("visibilitychange",function(){log("visibilità: "+document.visibilityState);});
+  window.addEventListener("pageshow",function(e){log("pageshow persisted="+e.persisted);});
+  window.addEventListener("pagehide",function(){log("pagehide");});
+  window.addEventListener("online",function(){log("evento online");});
+  window.addEventListener("offline",function(){log("evento offline");});
+  var lastTick=Date.now(),lastMo=Date.now();
+  setInterval(function(){
+    var t=Date.now(),gap=t-lastTick;lastTick=t;
+    if(gap>6000)log("⚠ timer sospeso/rallentato: "+Math.round(gap/1000)+"s senza esecuzione");
+    ORDER.forEach(function(k){updateCd(S[k]);});
+    if(t-lastMo>=30000){lastMo=t;if(S.mo.data&&!S.mo.busy)renderSec(S.mo);}     /* ricalcola il tempo rimasto dell'Ordine Maggiore */
+    var el=$("logst");
+    if(el)el.textContent=ORDER.map(function(k){var s=S[k];return k+" "+(s.busy?"…":fmtSec(Math.max(0,Math.round((s.next-t)/1000))));}).join(" · ")+" | online "+navigator.onLine+" | "+document.visibilityState;
+  },1000);
+  setInterval(pump,500);
+}
+start();
+})();
+</script>
+</body>
+</html>
